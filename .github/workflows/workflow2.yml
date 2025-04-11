@@ -1,9 +1,9 @@
-name: Story Generator Workflow 1 (12AM-3AM UTC)
+name: Story Generator Workflow 2 (6AM-9AM UTC)
 
 on:
-  # Run daily at midnight UTC (can be adjusted to your preferred time)
+  # Run daily at 6 AM UTC
   schedule:
-    - cron: '0 0 * * *'  # Format: minute hour day month day-of-week
+    - cron: '0 6 * * *'  # Format: minute hour day month day-of-week
   
   # Keep manual trigger option
   workflow_dispatch:
@@ -73,7 +73,7 @@ jobs:
       - name: Upload generated content
         uses: actions/upload-artifact@v4
         with:
-          name: generated-stories
+          name: generated-stories-workflow2
           path: |
             output/
             *.log
