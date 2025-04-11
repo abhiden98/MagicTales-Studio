@@ -129,7 +129,7 @@ Copy and paste the following code into a Google Colab notebook cell to set up an
 
 ## 💪 GitHub Actions Automation
 
-This project can be run continuously using GitHub Actions to generate multiple stories without manual intervention.
+This project is configured to run continuously using GitHub Actions to generate multiple stories without manual intervention.
 
 ### Setting Up GitHub Actions
 
@@ -138,41 +138,47 @@ This project can be run continuously using GitHub Actions to generate multiple s
    - Add a new repository secret named `GEMINI_API_KEY` with your Google Gemini API key
 
 2. **Automated Daily Runs**
-   - The workflow is configured to run automatically every day at midnight UTC
-   - Each run will continue for exactly 2 hours and 34 minutes
+   - Four separate workflows run every day, each for exactly 3 hours:
+     - **Workflow 1**: Runs at 12:00 AM UTC (midnight)
+     - **Workflow 2**: Runs at 6:00 AM UTC
+     - **Workflow 3**: Runs at 12:00 PM UTC (noon)
+     - **Workflow 4**: Runs at 6:00 PM UTC
+   - This provides 12 hours of daily automated video generation
+   - Each workflow produces approximately 18 videos (at 10 minutes per video)
    - No manual intervention required
 
 3. **Manual Trigger (Optional)**
    - Go to the Actions tab in your repository
-   - Select "Continuous Story Generator" workflow
+   - Select any of the four "Story Generator" workflows
    - Click "Run workflow"
    - Configure parameters:
-     - **Duration**: Number of hours to run (default: 2.34 hours)
+     - **Duration**: Number of hours to run (default: 3.0 hours)
      - **Stories Count**: Number of stories to generate (default: unlimited)
 
-3. **Access Generated Content**
-   - After the workflow completes, go to the workflow run
-   - Download the "generated-stories" artifact
+4. **Access Generated Content**
+   - After each workflow completes, go to the workflow run
+   - Download the generated content artifact
    - The archive contains all stories, videos, thumbnails, and metadata files
+   - Artifacts are automatically deleted after 2 days to save storage space
 
 ### How It Works
 
-The GitHub Actions workflow:
-1. **Automatic Scheduling**: Runs daily at midnight UTC
-2. **Precise Duration Control**: Runs for exactly 2 hours and 34 minutes
+The GitHub Actions workflows:
+1. **Automatic Scheduling**: Distributed throughout the day at 6-hour intervals
+2. **Precise Duration Control**: Each workflow runs for exactly 3 hours
 3. **Environment Setup**: Configures Python with all dependencies and FFmpeg
 4. **Continuous Generation**: Executes the `continuous_runner.py` script which:
    - Generates stories in a loop
-   - Handles fractional hours precisely (e.g., 2.34 = 2h 20m 24s)
+   - Enforces unlimited story generation for scheduled runs
    - Saves all content to organized directories
    - Tracks statistics for each generation
    - Continues until time limit is reached
 
 ### Customizing
 
-You can modify `.github/workflows/story_generator.yml` to:
-- Adjust the schedule timing (currently set to `0 0 * * *` for midnight UTC)
-- Change the run duration (currently 2h 34m)
+You can modify any of the workflow files in `.github/workflows/` to:
+- Adjust the schedule timing (currently set at 6-hour intervals)
+- Change the run duration (currently 3 hours each)
 - Use different runner types (e.g., for higher performance)
 - Add additional environment variables
 - Integrate with other services like AWS S3 for storage
@@ -194,6 +200,64 @@ You can modify `.github/workflows/story_generator.yml` to:
 </div>
 
 *Component-level view showing all data flows between system elements*
+
+### Complete System Architecture
+
+```mermaid
+flowchart TD
+    classDef userInterface fill:#FF9999,stroke:#FF0000,color:#000000
+    classDef aiService fill:#FF9900,stroke:#FF6600,color:#000000
+    classDef dataStore fill:#66FF66,stroke:#00CC00,color:#000000
+    classDef mediaProcessing fill:#9999FF,stroke:#0000FF,color:#000000
+    classDef metadataService fill:#FF99FF,stroke:#FF00FF,color:#000000
+    classDef cloudService fill:#99FFFF,stroke:#00CCCC,color:#000000
+    
+    User((User)):::userInterface
+    
+    GoogleDrive[(Google Drive)]:::cloudService
+    
+    StoryGen[Story Generator]:::aiService
+    ImageGen[Image Generator]:::aiService
+    TTS[Text-to-Speech]:::mediaProcessing
+    VideoGen[Video Generator]:::mediaProcessing
+    SEO[SEO Generator]:::metadataService
+    Thumbnail[Thumbnail Creator]:::metadataService
+    
+    TempStorage[(Temporary Storage)]:::dataStore
+    
+    GeminiAPI[Gemini API]:::aiService
+    KokoroTTS[Kokoro TTS]:::mediaProcessing
+    FFmpeg[FFmpeg]:::mediaProcessing
+    
+    User --> |Input Prompt| StoryGen
+    StoryGen --> |API Request| GeminiAPI
+    GeminiAPI --> |Story Text, Image Descriptions| StoryGen
+    StoryGen --> |Image Request| ImageGen
+    ImageGen --> |API Request| GeminiAPI
+    GeminiAPI --> |Generated Images| ImageGen
+    
+    StoryGen --> |Story Text| TempStorage
+    ImageGen --> |Image Files| TempStorage
+    
+    TempStorage --> |Story Text| TTS
+    TTS --> |Text Chunks| KokoroTTS
+    KokoroTTS --> |Audio Samples| TTS
+    TTS --> |Audio File| TempStorage
+    
+    TempStorage --> |Images, Audio| VideoGen
+    VideoGen --> |Media Files| FFmpeg
+    FFmpeg --> |Processed Video| VideoGen
+    VideoGen --> |Video File| TempStorage
+    
+    TempStorage --> |Story Content| SEO
+    SEO --> |Metadata| TempStorage
+    
+    TempStorage --> |Images, Title| Thumbnail
+    Thumbnail --> |Thumbnail Image| TempStorage
+    
+    TempStorage --> |All Assets| GoogleDrive
+    GoogleDrive --> |Share URL| User
+```
 
 ### Detailed Data Flow Diagram
 
