@@ -72,11 +72,23 @@ def save_generation_stats(stats):
 def parse_args():
     """Parse command line arguments"""
     parser = argparse.ArgumentParser(description="Continuous Story Generator Runner")
-    parser.add_argument('--duration', type=float, default=2.34, 
-                        help='Duration to run in hours (0 for unlimited, can use fractional hours e.g. 2.5 for 2h30m)')
+    parser.add_argument('--duration', type=float, default=3.0, 
+                        help='Duration to run in hours (0 for unlimited, can use fractional hours e.g. 3.0 for 3 hours)')
     parser.add_argument('--count', type=int, default=0, 
                         help='Number of stories to generate (0 for unlimited)')
-    return parser.parse_args()
+    
+    # Parse the arguments
+    args = parser.parse_args()
+    
+    # For GitHub Actions workflows, make sure we enforce the 3-hour runtime and unlimited stories
+    if os.environ.get('GITHUB_ACTIONS') == 'true':
+        # Check if this is a scheduled run (not manually triggered)
+        if os.environ.get('GITHUB_EVENT_NAME') == 'schedule':
+            logger.info("This is a scheduled GitHub Actions run. Enforcing 3-hour runtime and unlimited stories.")
+            args.duration = 3.0
+            args.count = 0
+    
+    return args
 
 def main():
     """Main function to run the story generator in a loop"""

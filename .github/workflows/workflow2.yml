@@ -61,14 +61,23 @@ jobs:
           # If triggered manually, use the input values; otherwise use scheduled values
           DURATION_HOURS: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.duration || '3.0' }}
           STORIES_COUNT: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.stories_count || '0' }}
+          # Force GITHUB_EVENT_NAME for the continuous_runner.py script
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
           # GEMINI_API_KEY is already set in the environment or hardcoded in settings.py
         run: |
           echo "Running for ${DURATION_HOURS} hours or until ${STORIES_COUNT} stories are generated (0 = unlimited)"
+          echo "Event type: ${GITHUB_EVENT_NAME}"
           # Check Python and package versions
           python -c "import sys; print('Python version:', sys.version)"
           python -c "import google.genai as genai; print('Google Genai version:', genai.__version__)"
-          # Run the continuous generator
-          python continuous_runner.py --duration $DURATION_HOURS --count $STORIES_COUNT
+          # Run the continuous generator - for scheduled runs, always use 3 hours and unlimited stories
+          if [ "$GITHUB_EVENT_NAME" = "schedule" ]; then
+            echo "This is a scheduled run. Enforcing 3-hour runtime and unlimited stories."
+            python continuous_runner.py --duration 3.0 --count 0
+          else
+            echo "This is a manual run. Using provided parameters."
+            python continuous_runner.py --duration $DURATION_HOURS --count $STORIES_COUNT
+          fi
           
       - name: Upload generated content
         uses: actions/upload-artifact@v4
