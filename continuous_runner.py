@@ -23,10 +23,8 @@ import argparse
 import logging
 import traceback
 import json
+import subprocess
 from pathlib import Path
-
-# Import main generator functions
-from main import main as generate_story
 
 # Set up logging
 logging.basicConfig(
@@ -131,8 +129,17 @@ def main():
                 os.environ["STORY_RUN_ID"] = run_id
                 os.environ["OUTPUT_DIR"] = str(output_dir)
                 
-                # Run the main story generator function
-                generate_story()
+                # Run the main story generator function as a subprocess
+                process = subprocess.run([sys.executable, 'main.py'], 
+                                        env=os.environ.copy(),
+                                        check=False)  # Don't raise exception if exit code is non-zero
+                
+                # Check if the process completed successfully
+                if process.returncode == 0:
+                    logger.info("Main script completed successfully.")
+                else:
+                    logger.error(f"Main script exited with code {process.returncode}")
+                    raise RuntimeError(f"Main script exited with code {process.returncode}")
                 
                 # Track success
                 generation_end = datetime.datetime.now()
