@@ -1,9 +1,9 @@
-name: Story Generator Workflow 3 (12PM-3PM UTC)
+name: Story Generator Workflow 3 (3PM-6PM UTC)
 
 on:
-  # Run daily at 12 PM UTC
+  # Run daily at 3 PM UTC
   schedule:
-    - cron: '0 12 * * *'  # Format: minute hour day month day-of-week
+    - cron: '0 15 * * *'  # Format: minute hour day month day-of-week
   
   # Keep manual trigger option
   workflow_dispatch:

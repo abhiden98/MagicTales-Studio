@@ -138,12 +138,11 @@ This project is configured to run continuously using GitHub Actions to generate 
    - Add a new repository secret named `GEMINI_API_KEY` with your Google Gemini API key
 
 2. **Automated Daily Runs**
-   - Four separate workflows run every day, each for exactly 3 hours:
-     - **Workflow 1**: Runs at 12:00 AM UTC (midnight)
-     - **Workflow 2**: Runs at 6:00 AM UTC
-     - **Workflow 3**: Runs at 12:00 PM UTC (noon)
-     - **Workflow 4**: Runs at 6:00 PM UTC
-   - This provides 12 hours of daily automated video generation
+   - Three separate workflows run every day, each for exactly 3 hours:
+     - **Workflow 1**: Runs at 3:00 AM - 6:00 AM UTC
+     - **Workflow 2**: Runs at 9:00 AM - 12:00 PM UTC
+     - **Workflow 3**: Runs at 3:00 PM - 6:00 PM UTC
+   - This provides 9 hours of daily automated video generation
    - Each workflow produces approximately 18 videos (at 10 minutes per video)
    - No manual intervention required
 
@@ -164,7 +163,7 @@ This project is configured to run continuously using GitHub Actions to generate 
 ### How It Works
 
 The GitHub Actions workflows:
-1. **Automatic Scheduling**: Distributed throughout the day at 6-hour intervals
+1. **Automatic Scheduling**: Distributed throughout the day at 6-hour intervals (3AM, 9AM, and 3PM UTC)
 2. **Precise Duration Control**: Each workflow runs for exactly 3 hours
 3. **Environment Setup**: Configures Python with all dependencies and FFmpeg
 4. **Continuous Generation**: Executes the `continuous_runner.py` script which:
